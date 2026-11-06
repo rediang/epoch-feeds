@@ -18,5 +18,10 @@
     "id": "bbc-news-zh",
     "title": "BBC News 中文",
     "channel_id": "UCb3TZ4SD_Ys3j4z0-8o6auA"
+  },
+  {
+    "id": "wenzhao",
+    "title": "文昭談古論今",
+    "channel_id": "UCtAIPjABiQD3qjlEl1T5VpA"
   }
 ]
