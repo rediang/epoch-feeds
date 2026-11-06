@@ -28,5 +28,50 @@
     "id": "yun-film",
     "title": "YUN FILM",
     "channel_id": "UCj74lcUzTGlqjHuvGRcZ3lw"
+  },
+  {
+    "id": "links-tv",
+    "title": "Links TV",
+    "channel_id": "UCz0ONCn6eRcDJGsUzupc3TA"
+  },
+  {
+    "id": "xiaolin",
+    "title": "小Lin说",
+    "channel_id": "UCilwQlk62k1z7aUEZPOB6yw"
+  },
+  {
+    "id": "yanjiuyuan",
+    "title": "言究院",
+    "channel_id": "UC1Xm-VhWUqZcPCCN5R2MniA"
+  },
+  {
+    "id": "lingdu",
+    "title": "零度解说",
+    "channel_id": "UCvijahEyGtvMpmMHBu4FS2w"
+  },
+  {
+    "id": "yingpai",
+    "title": "硬派放映室",
+    "channel_id": "UCnXJvlsx6k50xCqlz4uHarg"
+  },
+  {
+    "id": "bahao",
+    "title": "8號電影院 -  HK Movie",
+    "channel_id": "UCKiw9OKbQecHMy_K1JqxKeA"
+  },
+  {
+    "id": "laoliang",
+    "title": "老梁故事汇",
+    "channel_id": "UCNE3Tho7XQ39iSUTafPmMpQ"
+  },
+  {
+    "id": "chaijing",
+    "title": "柴静 Chai Jing",
+    "channel_id": "UCjuNibFJ21MiSNpu8LZyV4w"
+  },
+  {
+    "id": "hengmei",
+    "title": "老周横眉",
+    "channel_id": "UCFDMMIHbtRdrVhHlGXVzApA"
   }
 ]
