@@ -258,5 +258,10 @@
         "id": "8tvmandarinnews",
         "title": "八度空间华语新闻",
         "channel_id": "UCJZTvwnKU0PBH4dhDJkFyZw"
+    },
+    {
+        "id": "tvbsnews01",
+        "title": "TVBS NEWS",
+        "channel_id": "UC5nwNW4KdC0SzrhF9BXEYOQ"
     }
 ]
