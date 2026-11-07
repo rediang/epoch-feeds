@@ -288,5 +288,10 @@
         "id": "masacooking",
         "title": "MASAの料理ABC",
         "channel_id": "UCr90FXGOO8nAE9B6FAUeTNA"
+    },
+    {
+        "id": "xdiaocha",
+        "title": "X調查",
+        "channel_id": "UCOyshL6rKK1GqwoEfy_ehBg"
     }
 ]
