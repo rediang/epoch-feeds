@@ -273,5 +273,10 @@
         "id": "jiangfengtimes",
         "title": "江峰时刻",
         "channel_id": "UCa6ERCDt3GzkvLye32ar89w"
+    },
+    {
+        "id": "globalwindow3",
+        "title": "全球视窗",
+        "channel_id": "UCCBxA_qHIPqaKc3NQ2m4fxg"
     }
 ]
