@@ -503,5 +503,10 @@
         "id": "voachinese",
         "title": "美国之音中文网",
         "channel_id": "UCt5zpwa264A0B-gaYtv1IpA"
+    },
+    {
+        "id": "torontobigface",
+        "title": "多伦多方脸",
+        "channel_id": "UCzYYzigb1vXR0GQXXBja2kg"
     }
 ]
