@@ -498,5 +498,10 @@
         "id": "rfi_cn",
         "title": "RFI 华语 - 法国国际广播电台",
         "channel_id": "UCg0NEYEic019u0gp5UwRFmQ"
+    },
+    {
+        "id": "voachinese",
+        "title": "美国之音中文网",
+        "channel_id": "UCt5zpwa264A0B-gaYtv1IpA"
     }
 ]
