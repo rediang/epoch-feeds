@@ -228,5 +228,10 @@
         "id": "iseemusic",
         "title": "我视音乐 - I SEE",
         "channel_id": "UCGqOhfbduCYeCsSckB8cD9Q"
+    },
+    {
+        "id": "chineseoldmovie",
+        "title": "华语老电影",
+        "channel_id": "UCzYdNxSgeZ0m85jamNjovEA"
     }
 ]
