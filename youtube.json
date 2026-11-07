@@ -243,5 +243,10 @@
         "id": "%e9%9b%b2%e7%ab%af%e6%94%be%e6%98%a0%e6%a9%9fcloudprojector",
         "title": "雲端放映機 Cloud Projector",
         "channel_id": "UCzjpcr6H8flrdobdvNTwuAw"
+    },
+    {
+        "id": "hkkungfufilm",
+        "title": "港片武打",
+        "channel_id": "UCLRWcE1M490nIcksQPxHtcQ"
     }
 ]
