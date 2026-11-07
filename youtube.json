@@ -233,5 +233,10 @@
         "id": "chineseoldmovie",
         "title": "华语老电影",
         "channel_id": "UCzYdNxSgeZ0m85jamNjovEA"
+    },
+    {
+        "id": "cctv6-movietheater",
+        "title": "电影大剧院 Movie Theater",
+        "channel_id": "UCnXAVNOIqCMqgN9yHwSfXdQ"
     }
 ]
