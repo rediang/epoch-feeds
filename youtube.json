@@ -263,5 +263,10 @@
         "id": "tvbsnews01",
         "title": "TVBS NEWS",
         "channel_id": "UC5nwNW4KdC0SzrhF9BXEYOQ"
+    },
+    {
+        "id": "%e5%b9%b4%e4%bb%a3%e6%96%b0%e8%81%9ech50",
+        "title": "年代新聞CH50",
+        "channel_id": "UCHBv5vSp3pETSLq8oWTsmqA"
     }
 ]
