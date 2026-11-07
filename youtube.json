@@ -333,5 +333,10 @@
         "id": "sunnyfinance",
         "title": "阳光财经",
         "channel_id": "UC2I5em6UyBpQiO-8ZW0nV3w"
+    },
+    {
+        "id": "%e8%80%81%e9%9b%b7%e8%ae%b2%e8%b4%a2%e7%bb%8f",
+        "title": "老雷财经",
+        "channel_id": "UCwbwyiCXO7EcS30Zcqu_K5A"
     }
 ]
