@@ -253,5 +253,10 @@
         "id": "ttv_news",
         "title": "台視新聞 TTV NEWS",
         "channel_id": "UC8ROUUjHzEQm-ndb69CX8Ww"
+    },
+    {
+        "id": "8tvmandarinnews",
+        "title": "八度空间华语新闻",
+        "channel_id": "UCJZTvwnKU0PBH4dhDJkFyZw"
     }
 ]
