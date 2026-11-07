@@ -15,12 +15,25 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 临时 RSSHub：feeds.json 中 "rsshub:/路由" 的源由它抓取，任务结束即销毁
+    services:
+      rsshub:
+        image: diygod/rsshub:latest
+        ports:
+          - 1200:1200
+        env:
+          NODE_ENV: production
+          CACHE_TYPE: memory
+          REQUEST_TIMEOUT: "20000"
+          LOGGER_LEVEL: warn
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Build feeds
+        env:
+          RSSHUB_BASE: http://localhost:1200
         run: python scripts/build_feeds.py
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

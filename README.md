@@ -10,6 +10,8 @@
 
 `https://rediang.github.io/epoch-feeds/feeds/zaobao.xml`
 
+**RSSHub 源**：`feeds.json` 里写 `"url": "rsshub:/路由"`（如 `rsshub:/nytimes`），workflow 会临时启动一个 RSSHub 容器去抓取。路由见 https://docs.rsshub.app/routes/
+
 YouTube 镜像示例：
 
 `https://rediang.github.io/epoch-feeds/feeds/yt-UCRtmhO2ahi0rDcRadfeNtFQ.xml`
