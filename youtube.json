@@ -203,5 +203,10 @@
         "id": "ladygaga",
         "title": "Lady Gaga",
         "channel_id": "UCNL1ZadSjHpjm4q9j2sVtOA"
+    },
+    {
+        "id": "michaeljackson",
+        "title": "Michael Jackson",
+        "channel_id": "UC5OrDvL9DscpcAstz7JnQGA"
     }
 ]
