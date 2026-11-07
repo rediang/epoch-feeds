@@ -143,5 +143,10 @@
         "id": "getstevenliu",
         "title": "大刘科普",
         "channel_id": "UCPG0y4RcPuqWZ5WKQMeNmzw"
+    },
+    {
+        "id": "tradingkey_zh",
+        "title": "TradingKey 美股財經",
+        "channel_id": "UCIIcSp0vkdJLfTgElnY71YQ"
     }
 ]
