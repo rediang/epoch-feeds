@@ -80,11 +80,11 @@ ENTRY_RE = re.compile(rb"<entry\b[\s\S]*?</entry>\s*", re.I)
 VID_RE = re.compile(rb"<yt:videoId>([\w-]{11})</yt:videoId>")
 
 
-def shorts_ids(channel_id: str) -> set[bytes]:
-    """IDs in the channel's Shorts playlist (UUSH…). Empty set if unavailable."""
+def playlist_ids(channel_id: str, prefix: str) -> set[bytes]:
+    """IDs in one of the channel's auto playlists: UUSH… = Shorts, UULV… = live streams."""
     if not channel_id.startswith("UC"):
         return set()
-    url = f"https://www.youtube.com/feeds/videos.xml?playlist_id=UUSH{channel_id[2:]}"
+    url = f"https://www.youtube.com/feeds/videos.xml?playlist_id={prefix}{channel_id[2:]}"
     for _ in range(3):
         try:
             return set(VID_RE.findall(fetch(url, ua=CHROME_UA)))
@@ -97,16 +97,27 @@ def shorts_ids(channel_id: str) -> set[bytes]:
     return set()
 
 
+def shorts_ids(channel_id: str) -> set[bytes]:
+    return playlist_ids(channel_id, "UUSH")
+
+
+LIVE_SEEN: list[str] = []
+
+
 def drop_shorts(data: bytes, channel_id: str) -> tuple[bytes, int]:
-    """Remove YouTube Shorts entries: /shorts/ links, or IDs in the Shorts playlist."""
-    sids = shorts_ids(channel_id)
+    """Remove Shorts (/shorts/ links or the Shorts playlist) and live streams / premieres
+    (the channel's live playlist, or a "live" link) — embedded lives often can't be played."""
+    lives = playlist_ids(channel_id, "UULV")
+    sids = shorts_ids(channel_id) | lives
     dropped = 0
 
     def keep(m: re.Match) -> bytes:
         nonlocal dropped
         e = m.group(0)
         v = VID_RE.search(e)
-        if b"/shorts/" in e or (v and v.group(1) in sids):
+        if b"/shorts/" in e or b"/live/" in e or (v and v.group(1) in sids):
+            if v and (v.group(1) in lives or b"/live/" in e):
+                LIVE_SEEN.append(v.group(1).decode())
             dropped += 1
             return b""
         return e
@@ -258,7 +269,7 @@ def build_youtube(yt: list[dict]) -> list[str]:
             path.write_bytes(data)
             ok.append(cid)
             entries = data.count(b"<entry")
-            print("OK yt", cid, f"bytes={len(data)} entries={entries} shorts_dropped={shorts}")
+            print("OK yt", cid, f"bytes={len(data)} entries={entries} dropped={shorts}")
         except Exception as e:
             print("FAIL yt", cid, e, file=sys.stderr)
             if path.exists():
@@ -275,6 +286,7 @@ def main() -> int:
     ok = build_rss(cfg)
     yt_ok = build_youtube(yt)
     (ROOT / "index.html").write_text(index_html(cfg, ok, yt, yt_ok), encoding="utf-8")
+    (OUT / "live-ids.txt").write_text("\n".join(sorted(set(LIVE_SEEN))), encoding="utf-8")
     print(f"done rss {len(ok)}/{len(cfg)} yt {len(yt_ok)}/{len(yt)}")
     # Succeed if any feed built, or YouTube kept a previous file for every channel
     if ok or yt_ok:
