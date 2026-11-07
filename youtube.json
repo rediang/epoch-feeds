@@ -268,5 +268,10 @@
         "id": "%e5%b9%b4%e4%bb%a3%e6%96%b0%e8%81%9ech50",
         "title": "年代新聞CH50",
         "channel_id": "UCHBv5vSp3pETSLq8oWTsmqA"
+    },
+    {
+        "id": "jiangfengtimes",
+        "title": "江峰时刻",
+        "channel_id": "UCa6ERCDt3GzkvLye32ar89w"
     }
 ]
