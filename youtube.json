@@ -308,5 +308,10 @@
         "id": "c-documentary",
         "title": "纪实说",
         "channel_id": "UC9zs6wZpy_V3XfynMh8pQmw"
+    },
+    {
+        "id": "talk-show888",
+        "title": "纪实Talk",
+        "channel_id": "UCuqZEtd4z8rWEeDUaqWsHjg"
     }
 ]
