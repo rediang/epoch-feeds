@@ -2,7 +2,7 @@
 """Fetch upstream RSS, clean junk, write static XML for GitHub Pages.
 
 Also mirrors YouTube channel Atom feeds (browser UA + retries) into
-feeds/yt-<channel_id>.xml without modifying the XML body.
+feeds/yt-<channel_id>.xml, dropping YouTube Shorts entries.
 """
 from __future__ import annotations
 import html as html_lib
@@ -74,6 +74,44 @@ def fetch_youtube(channel_id: str) -> bytes:
             if attempt < YT_RETRIES:
                 time.sleep(YT_RETRY_DELAY)
     raise RuntimeError(f"YouTube fetch failed after {YT_RETRIES} tries: {last_err}")
+
+
+ENTRY_RE = re.compile(rb"<entry\b[\s\S]*?</entry>\s*", re.I)
+VID_RE = re.compile(rb"<yt:videoId>([\w-]{11})</yt:videoId>")
+
+
+def shorts_ids(channel_id: str) -> set[bytes]:
+    """IDs in the channel's Shorts playlist (UUSH…). Empty set if unavailable."""
+    if not channel_id.startswith("UC"):
+        return set()
+    url = f"https://www.youtube.com/feeds/videos.xml?playlist_id=UUSH{channel_id[2:]}"
+    for _ in range(3):
+        try:
+            return set(VID_RE.findall(fetch(url, ua=CHROME_UA)))
+        except urllib.error.HTTPError as e:
+            if e.code == 404:  # channel has no Shorts
+                return set()
+        except Exception:
+            pass
+        time.sleep(YT_RETRY_DELAY)
+    return set()
+
+
+def drop_shorts(data: bytes, channel_id: str) -> tuple[bytes, int]:
+    """Remove YouTube Shorts entries: /shorts/ links, or IDs in the Shorts playlist."""
+    sids = shorts_ids(channel_id)
+    dropped = 0
+
+    def keep(m: re.Match) -> bytes:
+        nonlocal dropped
+        e = m.group(0)
+        v = VID_RE.search(e)
+        if b"/shorts/" in e or (v and v.group(1) in sids):
+            dropped += 1
+            return b""
+        return e
+
+    return ENTRY_RE.sub(keep, data), dropped
 
 
 def clean_html(html: str) -> str:
@@ -215,11 +253,12 @@ def build_youtube(yt: list[dict]) -> list[str]:
         path = OUT / f"yt-{cid}.xml"
         try:
             data = fetch_youtube(cid)
-            # Write bytes unchanged so yt:videoId / media:* stay intact
+            # Drop Shorts; otherwise keep the XML unchanged so yt:videoId / media:* stay intact
+            data, shorts = drop_shorts(data, cid)
             path.write_bytes(data)
             ok.append(cid)
             entries = data.count(b"<entry")
-            print("OK yt", cid, f"bytes={len(data)} entries={entries}")
+            print("OK yt", cid, f"bytes={len(data)} entries={entries} shorts_dropped={shorts}")
         except Exception as e:
             print("FAIL yt", cid, e, file=sys.stderr)
             if path.exists():
