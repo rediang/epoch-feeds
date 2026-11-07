@@ -248,5 +248,10 @@
         "id": "hkkungfufilm",
         "title": "港片武打",
         "channel_id": "UCLRWcE1M490nIcksQPxHtcQ"
+    },
+    {
+        "id": "ttv_news",
+        "title": "台視新聞 TTV NEWS",
+        "channel_id": "UC8ROUUjHzEQm-ndb69CX8Ww"
     }
 ]
