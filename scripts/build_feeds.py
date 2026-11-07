@@ -6,7 +6,7 @@ feeds/yt-<channel_id>.xml, dropping YouTube Shorts entries.
 """
 from __future__ import annotations
 import html as html_lib
-import json, re, sys, time, urllib.error, urllib.request
+import json, os, re, sys, time, urllib.error, urllib.request
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -18,6 +18,8 @@ CHROME_UA = (
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/131.0.0.0 Safari/537.36"
 )
+# feeds.json 里 "rsshub:/路由" 形式的地址，会交给 workflow 里临时启动的 RSSHub 容器抓取
+RSSHUB_BASE = os.environ.get("RSSHUB_BASE", "http://localhost:1200").rstrip("/")
 YT_RETRIES = 15
 YT_RETRY_DELAY = 1.5
 TS_RE = re.compile(
@@ -55,6 +57,27 @@ def fetch(url: str, *, ua: str = UA, timeout: int = 45) -> bytes:
     )
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read()
+
+
+def resolve_url(url: str) -> str:
+    if url.startswith("rsshub:"):
+        return RSSHUB_BASE + "/" + url[len("rsshub:"):].lstrip("/")
+    return url
+
+
+def wait_rsshub(cfg: list[dict], timeout: int = 120) -> None:
+    """Wait until the RSSHub service container answers (only if some feed uses it)."""
+    if not any(f["url"].startswith("rsshub:") for f in cfg):
+        return
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            fetch(RSSHUB_BASE + "/healthz", timeout=5)
+            print("RSSHub ready at", RSSHUB_BASE)
+            return
+        except Exception:
+            time.sleep(2)
+    print("WARN RSSHub not reachable at", RSSHUB_BASE, file=sys.stderr)
 
 
 def fetch_youtube(channel_id: str) -> bytes:
@@ -237,7 +260,7 @@ def build_rss(cfg: list[dict]) -> list[str]:
     for f in cfg:
         path = OUT / f"{f['id']}.xml"
         try:
-            data = fetch(f["url"]).decode("utf-8", "replace")
+            data = fetch(resolve_url(f["url"]), timeout=90).decode("utf-8", "replace")
             data = clean_feed_xml(data)
             if "<rss" not in data.lower() and "<feed" not in data.lower():
                 raise RuntimeError("not an RSS/Atom document")
@@ -283,6 +306,7 @@ def main() -> int:
     cfg = json.loads((ROOT / "feeds.json").read_text(encoding="utf-8"))
     yt = load_youtube()
     OUT.mkdir(parents=True, exist_ok=True)
+    wait_rsshub(cfg)
     ok = build_rss(cfg)
     yt_ok = build_youtube(yt)
     (ROOT / "index.html").write_text(index_html(cfg, ok, yt, yt_ok), encoding="utf-8")

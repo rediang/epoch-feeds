@@ -5,6 +5,7 @@
   {"id": "rfi", "title": "法广", "url": "https://feedx.net/rss/rfi.xml"},
   {"id": "dw", "title": "德国之声", "url": "https://feedx.net/rss/dw.xml"},
   {"id": "nytimes", "title": "纽约时报", "url": "https://feedx.net/rss/nytimes.xml"},
+  {"id": "nytimes-cn", "title": "纽约时报中文网", "url": "rsshub:/nytimes"},
   {"id": "thepaper", "title": "澎湃新闻", "url": "https://feedx.net/rss/thepaper.xml"},
   {"id": "jiemian", "title": "界面新闻", "url": "https://feedx.net/rss/jiemian.xml"},
   {"id": "xiake", "title": "侠客岛", "url": "https://plink.anyfeeder.com/weixin/xiake_island"}
