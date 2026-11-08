@@ -1,0 +1,33 @@
+name: Probe a route
+on:
+  workflow_dispatch:
+    inputs:
+      route:
+        description: RSSHub route
+        required: true
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    services:
+      rsshub:
+        image: diygod/rsshub:latest
+        ports:
+          - 1200:1200
+        env:
+          NODE_ENV: production
+          CACHE_TYPE: memory
+          REQUEST_TIMEOUT: "30000"
+    steps:
+      - name: Fetch
+        env:
+          ROUTE: ${{ github.event.inputs.route }}
+        run: |
+          for i in $(seq 1 40); do curl -sf http://localhost:1200/healthz >/dev/null && break; sleep 3; done
+          curl -s --max-time 120 "http://localhost:1200$ROUTE" -o out.xml; echo "bytes=$(wc -c < out.xml)"
+          head -c 6000 out.xml; echo; echo ----; grep -o '<item>' out.xml | wc -l
+          grep -oiE '(https?:)?//[^"<> ]+\.(mp4|m3u8)[^"<> ]*' out.xml | head -5
+          grep -oiE '<video[^>]*>' out.xml | head -3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probe
+          path: out.xml
