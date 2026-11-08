@@ -1,57 +1,62 @@
 [
-  {
-    "id": "zaobao",
-    "title": "联合早报",
-    "url": "https://feedx.net/rss/zaobao.xml"
-  },
-  {
-    "id": "bbc",
-    "title": "BBC",
-    "url": "https://feedx.net/rss/bbc.xml"
-  },
-  {
-    "id": "ap",
-    "title": "美联社",
-    "url": "https://feedx.net/rss/ap.xml"
-  },
-  {
-    "id": "rfi",
-    "title": "法广",
-    "url": "https://feedx.net/rss/rfi.xml"
-  },
-  {
-    "id": "dw",
-    "title": "德国之声",
-    "url": "https://feedx.net/rss/dw.xml"
-  },
-  {
-    "id": "nytimes",
-    "title": "纽约时报",
-    "url": "https://feedx.net/rss/nytimes.xml"
-  },
-  {
-    "id": "nytimes-cn",
-    "title": "纽约时报中文网",
-    "url": "rsshub:/nytimes"
-  },
-  {
-    "id": "thepaper",
-    "title": "澎湃新闻",
-    "url": "https://feedx.net/rss/thepaper.xml"
-  },
-  {
-    "id": "jiemian",
-    "title": "界面新闻",
-    "url": "https://feedx.net/rss/jiemian.xml"
-  },
-  {
-    "id": "xiake",
-    "title": "侠客岛",
-    "url": "https://plink.anyfeeder.com/weixin/xiake_island"
-  },
-  {
-    "id": "caozsay",
-    "title": "caoz的梦呓",
-    "url": "https://plink.anyfeeder.com/weixin/caozsay"
-  }
+    {
+        "id": "zaobao",
+        "title": "联合早报",
+        "url": "https://feedx.net/rss/zaobao.xml"
+    },
+    {
+        "id": "bbc",
+        "title": "BBC",
+        "url": "https://feedx.net/rss/bbc.xml"
+    },
+    {
+        "id": "ap",
+        "title": "美联社",
+        "url": "https://feedx.net/rss/ap.xml"
+    },
+    {
+        "id": "rfi",
+        "title": "法广",
+        "url": "https://feedx.net/rss/rfi.xml"
+    },
+    {
+        "id": "dw",
+        "title": "德国之声",
+        "url": "https://feedx.net/rss/dw.xml"
+    },
+    {
+        "id": "nytimes",
+        "title": "纽约时报",
+        "url": "https://feedx.net/rss/nytimes.xml"
+    },
+    {
+        "id": "nytimes-cn",
+        "title": "纽约时报中文网",
+        "url": "rsshub:/nytimes"
+    },
+    {
+        "id": "thepaper",
+        "title": "澎湃新闻",
+        "url": "https://feedx.net/rss/thepaper.xml"
+    },
+    {
+        "id": "jiemian",
+        "title": "界面新闻",
+        "url": "https://feedx.net/rss/jiemian.xml"
+    },
+    {
+        "id": "xiake",
+        "title": "侠客岛",
+        "url": "https://plink.anyfeeder.com/weixin/xiake_island"
+    },
+    {
+        "id": "caozsay",
+        "title": "caoz的梦呓",
+        "url": "https://plink.anyfeeder.com/weixin/caozsay"
+    },
+    {
+        "id": "rsshub-ifanr-index",
+        "title": "爱范儿",
+        "url": "https://rsshub.app/ifanr/index"
+    }
 ]
