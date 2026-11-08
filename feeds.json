@@ -53,5 +53,10 @@
         "id": "caozsay",
         "title": "caoz的梦呓",
         "url": "https://plink.anyfeeder.com/weixin/caozsay"
+    },
+    {
+        "id": "anyfeeder-nytimes-cn",
+        "title": "纽约时报中文网",
+        "url": "https://plink.anyfeeder.com/nytimes/cn"
     }
 ]
