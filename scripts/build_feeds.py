@@ -7,6 +7,7 @@ feeds/yt-<channel_id>.xml, dropping YouTube Shorts entries.
 from __future__ import annotations
 import html as html_lib
 import json, os, re, sys, time, urllib.error, urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from xml.sax.saxutils import escape
 
