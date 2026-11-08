@@ -57,6 +57,6 @@
     {
         "id": "rsshub-ifanr-index",
         "title": "爱范儿",
-        "url": "https://rsshub.app/ifanr/index"
+        "url": "rsshub:/ifanr/index"
     }
 ]

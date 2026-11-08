@@ -21,7 +21,7 @@ CHROME_UA = (
 )
 # feeds.json 里 "rsshub:/路由" 形式的地址，会交给 workflow 里临时启动的 RSSHub 容器抓取
 RSSHUB_BASE = os.environ.get("RSSHUB_BASE", "http://localhost:1200").rstrip("/")
-YT_RETRIES = 12
+YT_RETRIES = 15
 YT_RETRY_DELAY = 1.5
 TS_RE = re.compile(
     r"^(?:\s|<(?:div|p|span)[^>]*>)*"
@@ -301,9 +301,9 @@ def build_one_youtube(y: dict) -> str | None:
 
 
 def build_youtube(yt: list[dict]) -> list[str]:
-    """A few channels at a time: faster than one by one, but gentle enough that YouTube
-    doesn't start answering 404 (12 at once made almost every channel fail)."""
-    with ThreadPoolExecutor(max_workers=3) as ex:
+    """One channel at a time: YouTube answers 404 to this runner as soon as requests overlap
+    (tried 12 and 3 at once — nearly every channel failed). Plain feeds still run in parallel."""
+    with ThreadPoolExecutor(max_workers=1) as ex:
         return [x for x in ex.map(build_one_youtube, yt) if x]
 
 
