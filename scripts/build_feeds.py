@@ -21,7 +21,7 @@ CHROME_UA = (
 )
 # feeds.json 里 "rsshub:/路由" 形式的地址，会交给 workflow 里临时启动的 RSSHub 容器抓取
 RSSHUB_BASE = os.environ.get("RSSHUB_BASE", "http://localhost:1200").rstrip("/")
-YT_RETRIES = 6
+YT_RETRIES = 12
 YT_RETRY_DELAY = 1.5
 TS_RE = re.compile(
     r"^(?:\s|<(?:div|p|span)[^>]*>)*"
@@ -259,7 +259,7 @@ def load_youtube() -> list[dict]:
 def build_one_rss(f: dict) -> str | None:
     path = OUT / f"{f['id']}.xml"
     try:
-        data = fetch(f["url"]).decode("utf-8", "replace")
+        data = fetch(resolve_url(f["url"]), timeout=90).decode("utf-8", "replace")
         data = clean_feed_xml(data)
         if "<rss" not in data.lower() and "<feed" not in data.lower():
             raise RuntimeError("not an RSS/Atom document")
@@ -301,8 +301,9 @@ def build_one_youtube(y: dict) -> str | None:
 
 
 def build_youtube(yt: list[dict]) -> list[str]:
-    """Channels are fetched 12 at a time — 100+ channels in a few minutes instead of half an hour."""
-    with ThreadPoolExecutor(max_workers=12) as ex:
+    """A few channels at a time: faster than one by one, but gentle enough that YouTube
+    doesn't start answering 404 (12 at once made almost every channel fail)."""
+    with ThreadPoolExecutor(max_workers=3) as ex:
         return [x for x in ex.map(build_one_youtube, yt) if x]
 
 
