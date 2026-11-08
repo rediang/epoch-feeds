@@ -34,7 +34,7 @@ jobs:
                   print(u, "ERR", e)
           vids = []
           for u in ["https://view.inews.qq.com/a/" + aid, "https://new.qq.com/rain/a/" + aid]:
-              try: vids += re.findall(r'"vid"\s*:\s*"([a-z0-9]{11})"', get(u))
+              try: vids += re.findall(r'(?:"vid"|vid=|"video_id")\W{0,3}([a-z0-9]{11})', get(u))
               except Exception: pass
           vids = list(dict.fromkeys(vids))
           print("VIDS", vids)
