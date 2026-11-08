@@ -1,0 +1,58 @@
+name: Probe Tencent video
+on:
+  workflow_dispatch:
+    inputs:
+      aid:
+        description: article id
+        required: true
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve
+        env:
+          AID: ${{ github.event.inputs.aid }}
+        run: |
+          python3 - <<'PY'
+          import os, re, json, urllib.request
+          UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+          def get(u, ref=None):
+              h = {"User-Agent": UA}
+              if ref: h["Referer"] = ref
+              return urllib.request.urlopen(urllib.request.Request(u, headers=h), timeout=30).read().decode("utf-8", "replace")
+          aid = os.environ["AID"]
+          for u in ["https://view.inews.qq.com/a/" + aid, "https://new.qq.com/rain/a/" + aid]:
+              try:
+                  t = get(u)
+                  print(u, len(t))
+                  for k in ["vid", "video_id", "playurl", "mp4"]:
+                      ms = re.findall(r'"%s"\s*:\s*"([^"]{3,200})"' % k, t)
+                      print(" ", k, ms[:3])
+                  m = re.findall(r'(?:"vid"|vid=|"video_id")\W{0,3}([a-z0-9]{11})', t)
+                  print("  vid candidates", list(dict.fromkeys(m))[:5])
+              except Exception as e:
+                  print(u, "ERR", e)
+          vids = []
+          for u in ["https://view.inews.qq.com/a/" + aid, "https://new.qq.com/rain/a/" + aid]:
+              try: vids += re.findall(r'"vid"\s*:\s*"([a-z0-9]{11})"', get(u))
+              except Exception: pass
+          vids = list(dict.fromkeys(vids))
+          print("VIDS", vids)
+          for vid in vids[:1]:
+              for plat in ["10901", "11", "101001", "4100201"]:
+                  try:
+                      u = "https://vv.video.qq.com/getinfo?otype=json&platform=%s&defn=shd&charge=0&sphls=0&vids=%s" % (plat, vid)
+                      t = get(u, "https://v.qq.com/")
+                      j = json.loads(re.search(r"\{.*\}", t, re.S).group(0))
+                      vi = (j.get("vl", {}).get("vi") or [{}])[0]
+                      ui = (vi.get("ul", {}).get("ui") or [{}])
+                      url = ui[0].get("url", "") + vi.get("fn", "") + "?vkey=" + vi.get("fvkey", "") if vi.get("fvkey") else ""
+                      print("plat", plat, "em", j.get("em"), "msg", j.get("msg"), "fn", vi.get("fn"), "size", vi.get("fs"), "dur", vi.get("td"), "url", url[:160])
+                      if url:
+                          req = urllib.request.Request(url, headers={"User-Agent": UA, "Range": "bytes=0-1023"})
+                          r = urllib.request.urlopen(req, timeout=30)
+                          print("  download test", r.status, r.headers.get("Content-Type"), r.headers.get("Content-Range"))
+                          break
+                  except Exception as e:
+                      print("plat", plat, "ERR", e)
+          PY
