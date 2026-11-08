@@ -6,7 +6,7 @@ feeds/yt-<channel_id>.xml, dropping YouTube Shorts entries.
 """
 from __future__ import annotations
 import html as html_lib
-import json, os, re, sys, time, urllib.error, urllib.request
+import json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from xml.sax.saxutils import escape
@@ -284,15 +284,121 @@ def build_rss(cfg: list[dict]) -> list[str]:
         return [x for x in ex.map(build_one_rss, cfg) if x]
 
 
+YT_API_KEY = os.environ.get("YT_API_KEY", "").strip()
+YT_API = "https://www.googleapis.com/youtube/v3/"
+DUR_RE = re.compile(r"P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?")
+
+
+def yt_api(endpoint: str, **params) -> dict:
+    params["key"] = YT_API_KEY
+    url = YT_API + endpoint + "?" + urllib.parse.urlencode(params)
+    last: Exception | None = None
+    for _ in range(3):
+        try:
+            return json.loads(fetch(url, timeout=30))
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                raise
+            body = e.read().decode("utf-8", "replace")[:200]
+            last = RuntimeError(f"HTTP {e.code}: {body}")
+            if e.code in (400, 403):  # bad key / quota used up: retrying won't help
+                break
+        except Exception as e:
+            last = e
+        time.sleep(1)
+    raise RuntimeError(f"YouTube API {endpoint} failed: {last}")
+
+
+def seconds(iso: str) -> int:
+    m = DUR_RE.fullmatch(iso or "")
+    if not m:
+        return 0
+    d, h, mi, s = (int(x or 0) for x in m.groups())
+    return ((d * 24 + h) * 60 + mi) * 60 + s
+
+
+def fetch_youtube_api(channel_id: str) -> tuple[bytes, int]:
+    """Same Atom layout as youtube.com/feeds/videos.xml, built from the Data API.
+    Drops Shorts, live streams / premieres, and videos that can't be embedded."""
+    uploads = "UU" + channel_id[2:]
+    items = yt_api("playlistItems", part="snippet,contentDetails", playlistId=uploads, maxResults=15).get("items", [])
+    ids = [i["contentDetails"]["videoId"] for i in items]
+    vids = {}
+    if ids:
+        for v in yt_api("videos", part="snippet,contentDetails,statistics,status,liveStreamingDetails", id=",".join(ids)).get("items", []):
+            vids[v["id"]] = v
+    short_cands = [i for i in ids if i in vids and seconds(vids[i]["contentDetails"].get("duration", "")) <= 180]
+    shorts: set[str] = set()
+    if short_cands:
+        try:
+            sh = yt_api("playlistItems", part="contentDetails", playlistId="UUSH" + channel_id[2:], maxResults=50)
+            shorts = {i["contentDetails"]["videoId"] for i in sh.get("items", [])}
+        except urllib.error.HTTPError:
+            pass  # channel has no Shorts playlist
+    ch_title = items[0]["snippet"].get("channelTitle", "") if items else ""
+    ch_url = f"https://www.youtube.com/channel/{channel_id}"
+    x = lambda s: escape(s or "", {'"': "&quot;"})
+    out = [
+        '<?xml version="1.0" encoding="UTF-8"?>\n<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" '
+        'xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">\n',
+        f'<link rel="self" href="https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"/>\n',
+        f"<id>yt:channel:{channel_id}</id>\n<yt:channelId>{channel_id}</yt:channelId>\n",
+        f'<title>{x(ch_title)}</title>\n<link rel="alternate" href="{ch_url}"/>\n',
+        f"<author><name>{x(ch_title)}</name><uri>{ch_url}</uri></author>\n",
+    ]
+    dropped = 0
+    for vid in ids:
+        v = vids.get(vid)
+        if not v:  # private / deleted
+            dropped += 1
+            continue
+        sn, st = v["snippet"], v.get("status", {})
+        is_live = sn.get("liveBroadcastContent", "none") != "none" or "liveStreamingDetails" in v
+        if is_live or vid in shorts or not st.get("embeddable", True) or st.get("privacyStatus", "public") != "public":
+            if is_live:
+                LIVE_SEEN.append(vid)
+            dropped += 1
+            continue
+        th = sn.get("thumbnails", {})
+        thumb = (th.get("high") or th.get("medium") or th.get("default") or {}).get("url", f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg")
+        pub = sn.get("publishedAt", "").replace("Z", "+00:00")
+        views = v.get("statistics", {}).get("viewCount", "0")
+        out.append(
+            f"<entry>\n<id>yt:video:{vid}</id>\n<yt:videoId>{vid}</yt:videoId>\n"
+            f"<yt:channelId>{channel_id}</yt:channelId>\n<title>{x(sn.get('title'))}</title>\n"
+            f'<link rel="alternate" href="https://www.youtube.com/watch?v={vid}"/>\n'
+            f"<author><name>{x(sn.get('channelTitle'))}</name><uri>{ch_url}</uri></author>\n"
+            f"<published>{pub}</published>\n<updated>{pub}</updated>\n<media:group>\n"
+            f"<media:title>{x(sn.get('title'))}</media:title>\n"
+            f'<media:content url="https://www.youtube.com/v/{vid}?version=3" type="application/x-shockwave-flash" width="640" height="390"/>\n'
+            f'<media:thumbnail url="{x(thumb)}" width="480" height="360"/>\n'
+            f"<media:description>{x(sn.get('description'))}</media:description>\n"
+            f'<media:community><media:starRating count="0" average="5.00" min="1" max="5"/>'
+            f'<media:statistics views="{x(views)}"/></media:community>\n</media:group>\n</entry>\n'
+        )
+    out.append("</feed>\n")
+    return "".join(out).encode("utf-8"), dropped
+
+
 def build_one_youtube(y: dict) -> str | None:
     """Mirror one channel's Atom XML (Shorts / lives dropped). On failure keep the previous file."""
     cid = y["channel_id"]
     path = OUT / f"yt-{cid}.xml"
     try:
-        data = fetch_youtube(cid)
-        data, dropped = drop_shorts(data, cid)
+        data = None
+        if YT_API_KEY:
+            try:
+                data, dropped = fetch_youtube_api(cid)
+                via = "api"
+            except Exception as e:
+                print("  yt api failed, falling back to feed:", cid, e, file=sys.stderr)
+                data = None
+        if data is None:
+            via = "feed"
+            data = fetch_youtube(cid)
+            data, dropped = drop_shorts(data, cid)
         path.write_bytes(data)
-        print("OK yt", cid, f"bytes={len(data)} entries={data.count(b'<entry')} dropped={dropped}")
+        print("OK yt", via, cid, f"bytes={len(data)} entries={data.count(b'<entry')} dropped={dropped}")
         return cid
     except Exception as e:
         print("FAIL yt", cid, e, file=sys.stderr)
@@ -303,7 +409,8 @@ def build_one_youtube(y: dict) -> str | None:
 def build_youtube(yt: list[dict]) -> list[str]:
     """One channel at a time: YouTube answers 404 to this runner as soon as requests overlap
     (tried 12 and 3 at once — nearly every channel failed). Plain feeds still run in parallel."""
-    with ThreadPoolExecutor(max_workers=1) as ex:
+    # With an API key the official API is used, which has no overlap problem: run 8 at once.
+    with ThreadPoolExecutor(max_workers=8 if YT_API_KEY else 1) as ex:
         return [x for x in ex.map(build_one_youtube, yt) if x]
 
 
