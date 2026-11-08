@@ -20,7 +20,7 @@ CHROME_UA = (
 )
 # feeds.json 里 "rsshub:/路由" 形式的地址，会交给 workflow 里临时启动的 RSSHub 容器抓取
 RSSHUB_BASE = os.environ.get("RSSHUB_BASE", "http://localhost:1200").rstrip("/")
-YT_RETRIES = 15
+YT_RETRIES = 6
 YT_RETRY_DELAY = 1.5
 TS_RE = re.compile(
     r"^(?:\s|<(?:div|p|span)[^>]*>)*"
@@ -255,51 +255,54 @@ def load_youtube() -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def build_one_rss(f: dict) -> str | None:
+    path = OUT / f"{f['id']}.xml"
+    try:
+        data = fetch(f["url"]).decode("utf-8", "replace")
+        data = clean_feed_xml(data)
+        if "<rss" not in data.lower() and "<feed" not in data.lower():
+            raise RuntimeError("not an RSS/Atom document")
+        path.write_text(data, encoding="utf-8")
+        print("OK", f["id"], len(data))
+        return f["id"]
+    except Exception as e:
+        print("FAIL", f["id"], e, file=sys.stderr)
+        if not path.exists():
+            path.write_text(
+                f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel>'
+                f'<title>{escape(f["title"])}</title><description>fetch failed</description>'
+                f"</channel></rss>",
+                encoding="utf-8",
+            )
+        return None
+
+
 def build_rss(cfg: list[dict]) -> list[str]:
-    ok: list[str] = []
-    for f in cfg:
-        path = OUT / f"{f['id']}.xml"
-        try:
-            data = fetch(resolve_url(f["url"]), timeout=90).decode("utf-8", "replace")
-            data = clean_feed_xml(data)
-            if "<rss" not in data.lower() and "<feed" not in data.lower():
-                raise RuntimeError("not an RSS/Atom document")
-            path.write_text(data, encoding="utf-8")
-            ok.append(f["id"])
-            print("OK", f["id"], len(data))
-        except Exception as e:
-            print("FAIL", f["id"], e, file=sys.stderr)
-            if not path.exists():
-                path.write_text(
-                    f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel>'
-                    f'<title>{escape(f["title"])}</title><description>fetch failed</description>'
-                    f"</channel></rss>",
-                    encoding="utf-8",
-                )
-    return ok
+    """Fetch all feeds at the same time (one slow site no longer holds up the rest)."""
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        return [x for x in ex.map(build_one_rss, cfg) if x]
+
+
+def build_one_youtube(y: dict) -> str | None:
+    """Mirror one channel's Atom XML (Shorts / lives dropped). On failure keep the previous file."""
+    cid = y["channel_id"]
+    path = OUT / f"yt-{cid}.xml"
+    try:
+        data = fetch_youtube(cid)
+        data, dropped = drop_shorts(data, cid)
+        path.write_bytes(data)
+        print("OK yt", cid, f"bytes={len(data)} entries={data.count(b'<entry')} dropped={dropped}")
+        return cid
+    except Exception as e:
+        print("FAIL yt", cid, e, file=sys.stderr)
+        print(f"  {'kept previous' if path.exists() else 'no previous file for'} {path.name}", file=sys.stderr)
+        return None
 
 
 def build_youtube(yt: list[dict]) -> list[str]:
-    """Mirror YouTube Atom XML unchanged. On total failure keep previous file."""
-    ok: list[str] = []
-    for y in yt:
-        cid = y["channel_id"]
-        path = OUT / f"yt-{cid}.xml"
-        try:
-            data = fetch_youtube(cid)
-            # Drop Shorts; otherwise keep the XML unchanged so yt:videoId / media:* stay intact
-            data, shorts = drop_shorts(data, cid)
-            path.write_bytes(data)
-            ok.append(cid)
-            entries = data.count(b"<entry")
-            print("OK yt", cid, f"bytes={len(data)} entries={entries} dropped={shorts}")
-        except Exception as e:
-            print("FAIL yt", cid, e, file=sys.stderr)
-            if path.exists():
-                print(f"  kept previous {path.name}", file=sys.stderr)
-            else:
-                print(f"  no previous file for {path.name}", file=sys.stderr)
-    return ok
+    """Channels are fetched 12 at a time — 100+ channels in a few minutes instead of half an hour."""
+    with ThreadPoolExecutor(max_workers=12) as ex:
+        return [x for x in ex.map(build_one_youtube, yt) if x]
 
 
 def main() -> int:
