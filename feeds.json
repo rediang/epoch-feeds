@@ -53,5 +53,10 @@
         "id": "caozsay",
         "title": "caoz的梦呓",
         "url": "https://plink.anyfeeder.com/weixin/caozsay"
+    },
+    {
+        "id": "anyfeeder-zaobao-realtime-china",
+        "title": "联合早报",
+        "url": "https://plink.anyfeeder.com/zaobao/realtime/china"
     }
 ]
