@@ -558,5 +558,10 @@
         "id": "ltn-news",
         "title": "自由追新聞",
         "channel_id": "UCXN1qQ7whGVP5JbgqS-4x_A"
+    },
+    {
+        "id": "%e4%b8%89%e7%ab%8b%e8%b2%a1%e7%b6%93inews",
+        "title": "三立財經iNEWS",
+        "channel_id": "UCoNYj9OFHZn3ACmmeRCPwbA"
     }
 ]
