@@ -63,5 +63,10 @@
         "id": "anyfeeder-zaobao-realtime-world",
         "title": "anyfeeder-zaobao-realtime-world",
         "url": "https://plink.anyfeeder.com/zaobao/realtime/world"
+    },
+    {
+        "id": "anyfeeder-abc-cn",
+        "title": "ABC澳大利亚广播",
+        "url": "https://plink.anyfeeder.com/abc/cn"
     }
 ]
