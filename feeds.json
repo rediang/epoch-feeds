@@ -58,5 +58,10 @@
         "id": "anyfeeder-zaobao-realtime-china",
         "title": "联合早报",
         "url": "https://plink.anyfeeder.com/zaobao/realtime/china"
+    },
+    {
+        "id": "anyfeeder-zaobao-realtime-world",
+        "title": "anyfeeder-zaobao-realtime-world",
+        "url": "https://plink.anyfeeder.com/zaobao/realtime/world"
     }
 ]
